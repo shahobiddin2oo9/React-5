@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import "./Home.css";
 import request from "../server";
 import Cards from "./Cards";
+import { toast } from "react-toastify";
 
 export class HomePage extends Component {
   state = {
@@ -17,12 +18,12 @@ export class HomePage extends Component {
 
   async getData() {
     try {
-      let { data } = await request(
+      const { data } = await request(
         "top-headlines?country=us&apiKey=a0f2e5aa5d6b43be8faeb59e5b8d31eb"
       );
       this.setState({ allData: data.articles });
     } catch (error) {
-      console.log("Error fetching data:", error);
+      toast.error("❌ Ma'lumotlarni olishda xatolik yuz berdi!");
     }
   }
 
@@ -36,6 +37,10 @@ export class HomePage extends Component {
     const filteredData = allData.filter((el) =>
       el.title.toLowerCase().includes(search.toLowerCase())
     );
+
+    if (filteredData.length === 0 && search) {
+      toast.warn("⚠️ Siz qidirgan so‘z bo‘yicha hech narsa topilmadi!");
+    }
 
     const startIndex = (activePage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
@@ -62,9 +67,11 @@ export class HomePage extends Component {
         </div>
 
         <div className="cards">
-          {currentPageData.map((el) => (
-            <Cards key={el.title} {...el} />
-          ))}
+          {currentPageData.length > 0 ? (
+            currentPageData.map((el) => <Cards key={el.title} {...el} />)
+          ) : (
+            <h2 className="no-data">Ma'lumot topilmadi</h2>
+          )}
         </div>
 
         <div className="pagination">
